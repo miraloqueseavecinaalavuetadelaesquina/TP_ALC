@@ -124,7 +124,7 @@ def visualizar_p(A,alfa,size):
     N=A.shape[0]
     p = f.inversa(f.calcular_matriz_M(C, N, alfa)) @ np.ones(N)
 
-    fig, ax = plt.subplots(figsize=(size[0], size[0]))
+    fig, ax = plt.subplots(figsize=(size['plot_size'], size['plot_size']))
     barrios.to_crs("EPSG:22184").boundary.plot(color='gray', linewidth=0.5, ax=ax)
     # Dibuja la red con tamaños proporcionales al PageRank
     node_sizes =  size[1] * p  # se puede ajustar tamaños
@@ -140,7 +140,7 @@ def visualizar_p(A,alfa,size):
         with_labels=False     
     )
     
-    ax.set_title("Red de Museos en CABA - Tamaño según PageRank (α=1/5)", fontsize=16, pad=20)
+    ax.set_title("Red de Museos en CABA - Tamaño según PageRank (α={})".format(size['alpha']), fontsize=16, pad=20)
     ax.grid(False)  # Ocultar cuadrícula
     
     plt.tight_layout()
