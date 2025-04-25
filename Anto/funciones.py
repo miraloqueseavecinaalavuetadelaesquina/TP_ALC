@@ -10,12 +10,13 @@ import numpy as np
 from scipy.linalg import solve_triangular
 import matplotlib.pyplot as plt
 from numpy.linalg import LinAlgError
-from progress.bar import Bar    
+import scipy
+#from progress.bar import Bar    
 
 # =============================================================================
 # IO
 # =============================================================================
-
+"""
 def permutacion(A, vector_P, index=0):
     # dada una columna col_k(A), buscamos el indice i del valor absoluto mas alto de dicha columna, luego hacemos swap
     k = np.argmax(np.abs(A[index:,index:index+1]))
@@ -28,7 +29,20 @@ def permutacion(A, vector_P, index=0):
     A[index] = A[k]
     A[k] = fila_i
     vector_P[index], vector_P[k] = vector_P[k], vector_P[index]
+    
+"""
 
+# Función para permutar filas (para descompPLU)
+def permutacion(A, vector_P, index):
+    n = A.shape[0]
+    max_index = index + np.argmax(np.abs(A[index:, index]))
+    #swap
+    if max_index != index:
+        A[[index, max_index]] = A[[max_index, index]]
+        vector_P[[index, max_index]] = vector_P[[max_index, index]]
+
+"""
+# Veersion D&C con error de modelo
 def descompPLU(A, verbose=False):
     Ac = A.copy()
     n = A.shape[0]-1
@@ -54,6 +68,78 @@ def descompPLU(A, verbose=False):
         print("Matriz L \n", L)
         print("Matriz U \n", U)        
     return P,L,U
+"""
+
+
+# Descomposición LU sin pivoteo
+def descompLU(A, verbose=False):
+    Ac = A.copy().astype(np.float64)
+    n = A.shape[0]
+    for i in range(n - 1):
+        a_ii = Ac[i, i]
+        if a_ii == 0:
+            raise ValueError("Cero en la diagonal durante LU (se requiere pivoteo)")
+        L_i = Ac[i+1:, i] / a_ii
+        Ac[i+1:, i] = L_i
+        Ac[i+1:, i+1:] -= np.outer(L_i, Ac[i, i+1:])
+    
+    L = np.tril(Ac, -1) + np.eye(n)
+    U = np.triu(Ac)
+    if verbose:
+        print("L:\n", L)
+        print("U:\n", U)
+    return L, U
+
+# Descomposición PLU con pivoteo
+def calculaPLU(m, verbose=False):
+    mc = m.copy().astype(np.float64)
+    n = m.shape[0]
+    P = np.eye(n)
+    for i in range(n - 1):
+        max_row = i + np.argmax(np.abs(mc[i:, i]))
+        if max_row != i:
+            mc[[i, max_row]] = mc[[max_row, i]]
+            P[[i, max_row]] = P[[max_row, i]]
+        a_ii = mc[i, i]
+        if a_ii == 0:
+            raise ValueError("Matriz singular (no invertible)")
+        L_i = mc[i+1:, i] / a_ii
+        mc[i+1:, i] = L_i
+        mc[i+1:, i+1:] -= np.outer(L_i, mc[i, i+1:])
+    
+    L = np.tril(mc, -1) + np.eye(n)
+    U = np.triu(mc)
+    if verbose:
+        print("P:\n", P)
+        print("L:\n", L)
+        print("U:\n", U)
+    return P, L, U
+
+
+
+
+# --- Tests ---
+def test_inversa():
+    # Test 1: Matriz diagonal
+    D = np.diag([2, 4, 5])
+    D_inv_esperada = np.diag([0.5, 0.25, 0.2])
+    D_inv_calculada = inversa(D)
+    assert np.allclose(D_inv_calculada, D_inv_esperada), f"Error en matriz diagonal:\n{D_inv_calculada}"
+    
+    # Test 2: Matriz general invertible
+    A = np.array([[1, 2], [3, 4]])
+    A_inv_esperada = np.linalg.inv(A)
+    A_inv_calculada = inversa(A)
+    assert np.allclose(A_inv_calculada, A_inv_esperada), f"Error en matriz general:\n{A_inv_calculada}"
+    
+    # Test 3: Matriz con pivoteo requerido
+    B = np.array([[0, 1], [1, 0]])
+    B_inv_esperada = np.linalg.inv(B)
+    B_inv_calculada = inversa(B)
+    assert np.allclose(B_inv_calculada, B_inv_esperada), f"Error en matriz con pivoteo:\n{B_inv_calculada}"
+    
+    print("¡Todos los tests pasaron correctamente!")
+
 
 # =============================================================================
 # T
@@ -73,7 +159,26 @@ def construye_adyacencia(D,m):
     np.fill_diagonal(A,0) # Borramos diagonal para eliminar autolinks
     return(A)
 
-def calculaLU(matriz,verbose=False):
+def calculaLU(matriz, verbose=False):
+    mc = matriz.copy().astype(np.float64)
+    n = matriz.shape[0]
+    for i in range(n - 1):
+        a_ii = mc[i, i]
+        if a_ii == 0:
+            raise ValueError("Cero en la diagonal durante LU (se requiere pivoteo)")
+        L_i = mc[i+1:, i] / a_ii
+        mc[i+1:, i] = L_i
+        mc[i+1:, i+1:] -= np.outer(L_i, mc[i, i+1:])
+    
+    L = np.tril(mc, -1) + np.eye(n)
+    U = np.triu(mc)
+    if verbose:
+        print("L:\n", L)
+        print("U:\n", U)
+    return L, U
+
+"""  
+    
     matriz_c = matriz.copy()
     n = matriz.shape[0]-1
     i = 0
@@ -97,32 +202,26 @@ def calculaLU(matriz,verbose=False):
         print("Matriz L \n", l)
         print("Matriz U \n", u)        
     return l,u
-
+"""
 #------------------------------------------------------------------------------
 
-def inversa (A) :
-    n = A.shape[0]
-    i = 0
-    try: 
-        L,U = calculaLU(A)
-    except ValueError:
-        P,L,U = descompPLU(A)
-    if np.allclose(np.linalg.norm(A - U, 1), 0): # si descompLU no funciona, probamos con descompPLU
-        P,L,U = descompPLU(A)
-    inversa = []
+# Función para calcular la inversa corregida
+def inversa(m):
+    n = m.shape[0]
     try:
-        while i < n:        
-            e_i = np.zeros(n)
-            e_i[i] = 1
-            y = solve_triangular(L, e_i, lower=True).astype(A.dtype)
-            x = solve_triangular(U, y, lower=False).astype(A.dtype)
-            inversa.append(x)
-            i+=1
-    except LinAlgError as e:
-        print("Error de algebra lineal : ", e.args[0])
-    matriz = np.array(inversa)    
-    inversa = np.transpose(matriz)
-    return inversa
+        L, U = calculaLU(m)
+        P = np.eye(n)  # Matriz de permutación identidad si no hay pivoteo
+    except (ValueError, LinAlgError):
+        P, L, U = calculaPLU(m)
+    
+    m_inv = np.zeros((n, n))
+    for i in range(n):
+        e_i = P.T @ np.eye(n)[:, i]  # Aplica la permutación P al vector canónico
+        y = solve_triangular(L, e_i, lower=True)
+        x = solve_triangular(U, y, lower=False)
+        m_inv[:, i] = x
+    return m_inv
+
 
 
 def calcula_matrizK (A):
@@ -132,6 +231,7 @@ def calcula_matrizK (A):
         k[i][i] = A[i].sum()
     
     return k
+
 
 #------------------------------------------------------------------------------
 
@@ -144,6 +244,26 @@ def calcula_matriz_C(A):
     C = Kinv @ A
     return C
 
+# -----------------------------------------------------------------------------
+# M = N/α (I − (1 − α)C)
+# falta comprobar la presición de maquina?
+def calcular_matriz_M(C,N,alpha):
+    ide = np.identity(N)
+    M = N/alpha * (ide - (1-alpha)*C)
+    return M
+
+
+
+def calcular_vector_p(M):    
+    return 
+
+c = np.array([[0,0,2,4],[0,2,4,3],[5,2,1,1],[2,3,1,1]])
+calcular_matriz_M(c, 4, 0.25)
+#calculaLU(c)
+calcula_matrizK(c)
+inversa(calcula_matrizK(c))
+#------------------------------------------------------------------------------
+
     
 def calcula_pagerank(A,alfa):
     # Función para calcular PageRank usando LU
@@ -152,12 +272,13 @@ def calcula_pagerank(A,alfa):
     # Retorna: Un vector p con los coeficientes de page rank de cada museo
     C = calcula_matriz_C(A)
     N = A.shape[0] # Obtenemos el número de museos N a partir de la estructura de la matriz A
-    M = ...
+    M = calcular_matriz_M(C, N, alfa)
     L, U = calculaLU(M) # Calculamos descomposición LU a partir de C y d
     b = ... # Vector de 1s, multiplicado por el coeficiente correspondiente usando d y N.
     Up = scipy.linalg.solve_triangular(L,b,lower=True) # Primera inversión usando L
     p = scipy.linalg.solve_triangular(U,Up) # Segunda inversión usando U
     return p
+
 
 def calcula_matriz_C_continua(D): 
     # Función para calcular la matriz de trancisiones C
@@ -166,7 +287,7 @@ def calcula_matriz_C_continua(D):
     D = D.copy()
     F = 1/D
     np.fill_diagonal(F,0)
-    Kinv = ... # Calcula inversa de la matriz K, que tiene en su diagonal la suma por filas de F 
+    Kinv = calcula_matrizK(D) # Calcula inversa de la matriz K, que tiene en su diagonal la suma por filas de F 
     C = ... # Calcula C multiplicando Kinv y F
     return C
 
