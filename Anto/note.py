@@ -17,12 +17,12 @@ import scipy
 
 import os
 import sys
-__file__= '/home/kanxo/git/tp_ALC/Anto/funciones.py'
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+path= '/home/antonyus/Documents/GitHub/TP_ALC/Anto'
+sys.path.append(path)
 
 import funciones as f
-import func as ff
-import fun as fff
+#import func as ff
+#import fun as fff
 
 # Carga de datos
 # Leemos el archivo, retenemos aquellos museos que están en CABA, y descartamos aquellos que no tienen latitud y longitud
@@ -124,7 +124,7 @@ def visualizar_p(A,alfa,size):
     N=A.shape[0]
     p = f.inversa(f.calcular_matriz_M(C, N, alfa)) @ np.ones(N)
 
-    fig, ax = plt.subplots(figsize=(size['plot_size'], size['plot_size']))
+    fig, ax = plt.subplots(figsize=(size, size))
     barrios.to_crs("EPSG:22184").boundary.plot(color='gray', linewidth=0.5, ax=ax)
     # Dibuja la red con tamaños proporcionales al PageRank
     node_sizes =  size[1] * p  # se puede ajustar tamaños
@@ -140,11 +140,61 @@ def visualizar_p(A,alfa,size):
         with_labels=False     
     )
     
-    ax.set_title("Red de Museos en CABA - Tamaño según PageRank (α={})".format(size['alpha']), fontsize=16, pad=20)
+    ax.set_title("Red de Museos en CABA - Tamaño según PageRank (α={})".format(alfa), fontsize=16, pad=20)
     ax.grid(False)  # Ocultar cuadrícula
     
     plt.tight_layout()
     plt.show()
+
+def visualizar_pR(D,G,m=3, alfa=1/5, size=15):
+    A = construye_adyacencia(D,m)
+
+    # Construcción de la red en NetworkX (sólo para las visualizaciones)
+    G = nx.from_numpy_array(A) # Construimos la red a partir de la matriz de adyacencia
+    # Construimos un layout a partir de las coordenadas geográficas
+    G_layout = {i:v for i,v in enumerate(zip(museos.to_crs("EPSG:22184").get_coordinates()['x'],museos.to_crs("EPSG:22184").get_coordinates()['y']))}
+
+    # Visualizacion
+    fig, ax = plt.subplots(figsize=(15, 15)) # Visualización de la red en el mapa
+    barrios.to_crs("EPSG:22184").boundary.plot(color='gray',ax=ax) # Graficamos Los barrios
+    nx.draw_networkx(G,G_layout,ax=ax) # Graficamos los museos
+
+    C = f.calcula_matriz_C(A)
+    N=A.shape[0]
+    p = f.inversa(f.calcular_matriz_M(C, N, alfa)) @ np.ones(N)
+
+    fig, ax = plt.subplots(figsize=(size, size))
+    barrios.to_crs("EPSG:22184").boundary.plot(color='gray', linewidth=0.5, ax=ax)
+    # Dibuja la red con tamaños proporcionales al PageRank
+    node_sizes =  size[1] * p  # se puede ajustar tamaños
+    nx.draw_networkx(
+        G,
+        pos=G_layout,
+        ax=ax,
+        node_size=node_sizes,  # escalado
+        node_color='purple',      
+        edge_color='violet',    
+        width=0.5,            
+        alpha=0.7,            
+        with_labels=False     
+    )
+    
+    ax.set_title("Red de Museos en CABA - Tamaño según PageRank (α={})".format(alfa), fontsize=16, pad=20)
+    ax.grid(False)  # Ocultar cuadrícula
+    
+    plt.tight_layout()
+    plt.show()
+    
+# 3.a
+visualizar_p(A, alfa=1/5, size=20)
+
+# 3.b
+for m in (1, 3, 5, 10):
+    visualizar_pR(D, G, m=m,size=20)
+
+# 3.c
+for alpha in [6/7, 4/5, 2/3, 1/2, 1/3, 1/5, 1/7]:
+    visualizar_pR(D, G, m=5, alfa=alpha, size=20)
 
 
 
