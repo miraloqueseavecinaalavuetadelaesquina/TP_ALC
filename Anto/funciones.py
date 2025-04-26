@@ -281,7 +281,7 @@ def calcula_pagerank(A,alfa):
 
 #------------------------------------------------------------------------------
 # La diafgonal son ceros
-def calcular_matriz_inverso_producto(D):
+def calcula_matriz_C_continua_(D):
     N = D.shape[0]
     C = np.eye(N) # acá C es la matriz identidad
     M =D + C
@@ -292,13 +292,13 @@ def calcular_matriz_inverso_producto(D):
     #y de paso multipliquuemos 
     for i in range(N):
         M[i] = M[i] * suma_columnas
-    return np.transpose(C)
+    return np.transpose(M)
 
 A = np.array([[0,1,2,3],[4,0,3,4],[2,2,0,12],[4,1,8,0]])
 vector_a = np.array([1, 2])
 vector_b = np.array([0.5, 0.25])
 vector_a * vector_b
-m = calcular_matriz_inverso_producto(A)
+m = calcula_matriz_C_continua_(A)
 
 #------------------------------------------------------------------------------
 
@@ -310,8 +310,8 @@ def calcula_matriz_C_continua(D):
     D = D.copy()
     F = ...
     np.fill_diagonal(F,0)
-    Kinv = calcula_matrizK(D) # Calcula inversa de la matriz K, que tiene en su diagonal la suma por filas de F 
-    C = ... # Calcula C multiplicando Kinv y F
+    Kinv = inversa(calcula_matrizK(D)) # Calcula inversa de la matriz K, que tiene en su diagonal la suma por filas de F 
+    C = Kinv @ F # Calcula C multiplicando Kinv y F
     return C
 
 def calcula_B(C,cantidad_de_visitas):
@@ -322,9 +322,8 @@ def calcula_B(C,cantidad_de_visitas):
     # Retorna:Una matriz B que vincula la cantidad de visitas w con la cantidad de primeras visitas v
     B = np.eye(C.shape[0])
     for i in range(cantidad_de_visitas-1):
-        print(1)
-        # Sumamos las matrices de transición para cada cantidad de pasos
-    return
+        B = B + np.linalg.matrix_power(C, i) # Sumamos las matrices de transición para cada cantidad de pasos
+    return B
 
 
 
