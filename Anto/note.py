@@ -17,8 +17,9 @@ import scipy
 
 import os
 import sys
-path= '/home/antonyus/Documents/GitHub/TP_ALC/Anto'
-sys.path.append(path)
+#path_t40= '/home/antonyus/Documents/GitHub/TP_ALC/Anto'
+path_X270 = '/home/kanxo/git/tp_ALC/Anto/'
+sys.path.append(path_X270)
 
 import funciones as f
 #import func as ff
@@ -119,22 +120,22 @@ ax.grid(False)  # Ocultar cuadrícula
 plt.tight_layout()
 plt.show()
 
-def visualizar_p(A,alfa,size):
+def visualizar_p(A,size,alfa=1/5):
     C = f.calcula_matriz_C(A)
     N=A.shape[0]
     p = f.inversa(f.calcular_matriz_M(C, N, alfa)) @ np.ones(N)
 
-    fig, ax = plt.subplots(figsize=(size, size))
+    fig, ax = plt.subplots(figsize=(size['plot size'], size['plot size']))
     barrios.to_crs("EPSG:22184").boundary.plot(color='gray', linewidth=0.5, ax=ax)
     # Dibuja la red con tamaños proporcionales al PageRank
-    node_sizes =  size[1] * p  # se puede ajustar tamaños
+    node_sizes =  size['node size'] * p  # se puede ajustar tamaños
     nx.draw_networkx(
         G,
         pos=G_layout,
         ax=ax,
         node_size=node_sizes,  # escalado
         node_color='purple',      
-        edge_color='violet',    
+        edge_color='blue',    
         width=0.5,            
         alpha=0.7,            
         with_labels=False     
@@ -146,7 +147,7 @@ def visualizar_p(A,alfa,size):
     plt.tight_layout()
     plt.show()
 
-def visualizar_pR(D,G,m=3, alfa=1/5, size=15):
+def visualizar_pR(D,G,size,m=3, alfa=1/5):
     A = construye_adyacencia(D,m)
 
     # Construcción de la red en NetworkX (sólo para las visualizaciones)
@@ -163,17 +164,17 @@ def visualizar_pR(D,G,m=3, alfa=1/5, size=15):
     N=A.shape[0]
     p = f.inversa(f.calcular_matriz_M(C, N, alfa)) @ np.ones(N)
 
-    fig, ax = plt.subplots(figsize=(size, size))
+    fig, ax = plt.subplots(figsize=(size['plot size'], size['plot size']))
     barrios.to_crs("EPSG:22184").boundary.plot(color='gray', linewidth=0.5, ax=ax)
     # Dibuja la red con tamaños proporcionales al PageRank
-    node_sizes =  size[1] * p  # se puede ajustar tamaños
+    node_sizes =  size['node size'] * p  # se puede ajustar tamaños
     nx.draw_networkx(
         G,
         pos=G_layout,
         ax=ax,
         node_size=node_sizes,  # escalado
         node_color='purple',      
-        edge_color='violet',    
+        edge_color='blue',    
         width=0.5,            
         alpha=0.7,            
         with_labels=False     
@@ -186,7 +187,8 @@ def visualizar_pR(D,G,m=3, alfa=1/5, size=15):
     plt.show()
     
 # 3.a
-visualizar_p(A, alfa=1/5, size=20)
+size ={'node size':6000, 'plot size':10}
+visualizar_p(A,size)
 
 # 3.b
 for m in (1, 3, 5, 10):
@@ -194,8 +196,23 @@ for m in (1, 3, 5, 10):
 
 # 3.c
 for alpha in [6/7, 4/5, 2/3, 1/2, 1/3, 1/5, 1/7]:
-    visualizar_pR(D, G, m=5, alfa=alpha, size=20)
+    visualizar_pR(D, G,size, m=5, alfa=alpha)
 
+
+"""
+Usando la Eq. 5, y suponiendo que las personas dan r = 3 pasos en la red de museos,
+calcular la cantidad total de visitantes que entraron en la red, ||v||1 , a partir del vector
+w provisto en el archivo visitas.txt. Usar para esto la matriz de transiciones definida
+por la Eq. 4. Para esto:
+• Construya una función calcula matriz C continua que reciba la matriz de dis-
+tancias entre museos D y retorne la matriz C definida en la Eq. 4.
+
+(1/D)^T*(D)
+
+• Construya una función calcula B(C,r) que reciba la matriz C y el número de
+pasos r como argumento, y retorne la matriz B de la Eq. 5.
+• Utilice la función calculaLU para resolver la Eq. 5.
+"""
 
 
 

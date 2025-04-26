@@ -279,13 +279,36 @@ def calcula_pagerank(A,alfa):
     p = scipy.linalg.solve_triangular(U,Up) # Segunda inversión usando U
     return p
 
+#------------------------------------------------------------------------------
+# La diafgonal son ceros
+def calcular_matriz_inverso_producto(D):
+    N = D.shape[0]
+    C = np.eye(N) # acá C es la matriz identidad
+    M =D + C
+    M = 1/M
+    M -= C
+    # De paso sumemos las columnas
+    suma_columnas = np.transpose(np.add.reduce(M,axis=0))
+    #y de paso multipliquuemos 
+    for i in range(N):
+        M[i] = M[i] * suma_columnas
+    return np.transpose(C)
+
+A = np.array([[0,1,2,3],[4,0,3,4],[2,2,0,12],[4,1,8,0]])
+vector_a = np.array([1, 2])
+vector_b = np.array([0.5, 0.25])
+vector_a * vector_b
+m = calcular_matriz_inverso_producto(A)
+
+#------------------------------------------------------------------------------
+
 
 def calcula_matriz_C_continua(D): 
     # Función para calcular la matriz de trancisiones C
     # A: Matriz de adyacencia
     # Retorna la matriz C en versión continua
     D = D.copy()
-    F = 1/D
+    F = ...
     np.fill_diagonal(F,0)
     Kinv = calcula_matrizK(D) # Calcula inversa de la matriz K, que tiene en su diagonal la suma por filas de F 
     C = ... # Calcula C multiplicando Kinv y F
