@@ -17,7 +17,7 @@ import scipy
 
 import os
 import sys
-path_t40= '/home/an2/git/tp_alc/TP_ALC/Anto/'
+path_t40= '/home/an2/git/tp_alc/TP_ALC'
 #path_X270 = '/home/kanxo/git/tp_ALC/Anto/'
 sys.path.append(path_t40)
 
@@ -194,20 +194,196 @@ def visualizar_pR(D,size,m=3, alfa=1/5):
 size ={'node size':1000, 'plot size':15}
 visualizar_p(A,size)
 
+# 1. Obtener los top 3 museos
+top_museos = museos.iloc[p.sort_values(ascending=False).head(3).index].copy()
+
+# 2. Crear el gráfico solo con los museos top
+fig, ax = plt.subplots(figsize=(12, 12))
+
+# Graficar barrios (contorno)
+barrios.to_crs("EPSG:22184").boundary.plot(color='gray', ax=ax, linewidth=0.8)
+
+# Graficar museos top (en rojo, tamaño proporcional al PageRank)
+top_museos.to_crs("EPSG:22184").plot(
+    ax=ax,
+    color='red',
+    markersize=top_museos.index.map(p) * 1000,  # Ajusta el escalado (*1000 para visibilidad)
+    alpha=0.8,
+    edgecolor='black'
+)
+
+# Añadir etiquetas con el valor de PageRank
+for idx, row in top_museos.iterrows():
+    ax.annotate(
+        text=f"{p[idx]:.2f}",
+        xy=(row.geometry.x, row.geometry.y),
+        xytext=(10, 10),
+        textcoords='offset points',
+        fontsize=10,
+        bbox=dict(boxstyle='round', fc='white', alpha=0.8)
+    )
+
+# Configuración adicional
+ax.set_title('Top 3 Museos por PageRank', fontsize=14)
+ax.set_axis_off()  # Ocultar ejes
+plt.show()
+
+# Recopilamos info 
+museos_centrales = {'puntajes': [] , 'posiciones': [], 'vectores': []}
+n = 3
 # 3.b
 for m in (1, 3, 5, 10):
-    visualizar_pR(D,size, m=m)
+    p = visualizar_pR(D,size, m=m)
+    p = pd.Series(p).sort_values(ascending=False)
+    museos_centrales['vectores'].append(p)
+    museos_centrales['puntajes'].append(p.head(n).values.tolist())
+    museos_centrales['posiciones'].append(p.head(n).index.tolist())
+
+museos_centrales['puntajes'] = np.array(museos_centrales['puntajes']).transpose()
+museos_centrales['posiciones'] = np.array(museos_centrales['posiciones']).transpose()
+museos_centrales['titulos'] = ['m=1', 'm=3', 'm=5', 'm=10']
+
+
+# 3.a'
+
+fig, ax = plt.subplots()
+ax.plot([1,3,5,10], museos_centrales['puntajes'][0] , label='Primer museo' ,color='#30BFDE', marker='^', linewidth=2.2, linestyle='-')
+ax.plot([1,3,5,10], museos_centrales['puntajes'][1] , label='Segundo museo' ,color='purple', marker='o', linewidth=2.2, linestyle='--')
+ax.plot([1,3,5,10], museos_centrales['puntajes'][2] , label='Tercer museo' ,color='violet', marker='o', linewidth=2.2, linestyle='--')
+
+# mostrar titulo
+ax.set_title('Puntajes')
+
+# Labels 
+ax.set_ylabel('Puntaje PageRank')
+ax.set_xlabel('Cantidad de vecinos más cercanos (m)')
+
+# Default grid
+ax.grid()
+plt.show()
+plt.close()
+
+
+# 3.b'
+fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(10,10))   # o simplemente plt.subplots(1,2)
+fig.subplots_adjust(wspace=0.5, hspace=0.5) # Con esto indicamos el espacio libre entre los subplots
+
+for ax, p, titulo in zip(axes.flat, museos_centrales['vectores'] , museos_centrales['titulos']):
+    # Obtener top 3 museos para este caso
+    top_museos = museos.iloc[p.sort_values(ascending=False).head(3).index]
     
-n = 3
-museos_centrales = {'puntajes': np.array([]) , 'posiciones': np.array()}
+    # Graficar barrios (contorno)
+    barrios.to_crs("EPSG:22184").boundary.plot(color='gray', ax=ax, linewidth=0.5)
+    
+    # Graficar museos top (color y tamaño proporcional a p)
+    top_museos.to_crs("EPSG:22184").plot(
+        ax=ax,
+        color='purple',
+        markersize=top_museos.index.map(p) * 800,  # Ajusta el escalado
+        alpha=0.7
+    )
+    
+    # Añadir etiquetas
+    for idx, row in top_museos.iterrows():
+        ax.annotate(
+            text=f"{p[idx]:.2f}",
+            xy=(row.geometry.x, row.geometry.y),
+            xytext=(5, 5),
+            textcoords='offset points',
+            fontsize=8
+        )
+    
+    # Configuración del subplot
+    ax.set_title(titulo, fontsize=12)
+    ax.set_axis_off()  # Ocultar ejes
+
+plt.tight_layout()
+plt.show()
+
+
+
+# Reiniciamos
+museos_centrales = {'puntajes': [] , 'posiciones': [], 'vectores': []}
+
+
 # 3.c
-for alpha in [6/7, 4/5, 2/3, 1/2, 1/3, 1/5, 1/7]:
+for alpha in [1/7, 1/5, 1/3, 1/2, 2/3, 4/5, 6/7]:
     p = visualizar_pR(D,size, m=5, alfa=alpha)
     p = pd.Series(p).sort_values(ascending=False)
-    museos_centrales['puntajes'].append(p.head(n).values)
-    museos_centrales['posiciones'].append(p.head(n).index)
+    museos_centrales['vectores'].append(p)
+    museos_centrales['puntajes'].append(p.head(n).values.tolist())
+    museos_centrales['posiciones'].append(p.head(n).index.tolist()) 
+
+museos_centrales['puntajes'] = np.array(museos_centrales['puntajes']).transpose()
+museos_centrales['posiciones'] = np.array(museos_centrales['posiciones']).transpose()
+museos_centrales['titulos'] = ['α=1/7', 'α=1/5', 'α=1/3', 'α=1/2', 'α=2/3', 'α=4/5', 'α=6/7']
+
+
+# 3.a'
+
+fig, ax = plt.subplots()
+ax.plot([1/7, 1/5, 1/3, 1/2, 2/3, 4/5, 6/7], museos_centrales['puntajes'][0] , label='Primer museo' ,color='#30BFDE', marker='^', linewidth=1, linestyle='-')
+ax.plot([1/7, 1/5, 1/3, 1/2, 2/3, 4/5, 6/7], museos_centrales['puntajes'][1] , label='Segundo museo' ,color='purple', marker='o', linewidth=1, linestyle='--')
+ax.plot([1/7, 1/5, 1/3, 1/2, 2/3, 4/5, 6/7], museos_centrales['puntajes'][2] , label='Tercer museo' ,color='violet', marker='*', linewidth=1, linestyle='-.')
+
+# mostrar titulo
+ax.set_title('Puntajes')
+
+# Labels 
+ax.set_ylabel('Puntaje PageRank')
+ax.set_xlabel('Factor de amortiguamiento (α)')
+
+# Default grid
+ax.grid()
+plt.show()
+plt.close()
+
+
+# 3.b'
+
+num_plots = len(museos_centrales['titulos'])
+nrows = (num_plots + 1) // 2  # Calcula filas necesarias
+fig, axes = plt.subplots(nrows=nrows, ncols=2, figsize=(10, 5*nrows))  # Ajusta altura dinámicamente
+fig.subplots_adjust(wspace=0.5, hspace=0.5)
+
+# Aplanamos axes y recorremos solo los necesarios
+axes = axes.flatten()
+for ax, p, titulo in zip(axes[:num_plots], museos_centrales['vectores'], museos_centrales['titulos']):
+    # Obtener top 3 museos para este caso
+    top_museos = museos.iloc[p.sort_values(ascending=False).head(3).index]
     
+    # Graficar barrios (contorno)
+    barrios.to_crs("EPSG:22184").boundary.plot(color='gray', ax=ax, linewidth=0.5)
     
+    # Graficar museos top (color y tamaño proporcional a p)
+    top_museos.to_crs("EPSG:22184").plot(
+        ax=ax,
+        color='purple',
+        markersize=top_museos.index.map(p) * 800,  # Ajusta el escalado
+        alpha=0.7
+    )
+    
+    # Añadir etiquetas
+    for idx, row in top_museos.iterrows():
+        ax.annotate(
+            text=f"{p[idx]:.2f}",
+            xy=(row.geometry.x, row.geometry.y),
+            xytext=(5, 5),
+            textcoords='offset points',
+            fontsize=8
+        )
+    
+    # Configuración del subplot
+    ax.set_title(titulo, fontsize=12)
+    ax.set_axis_off()  # Ocultar ejes
+
+
+# Ocultar ejes de subplots no usados
+for j in range(num_plots, len(axes)):
+    axes[j].set_axis_off()
+
+plt.tight_layout()
+plt.show()
 
 
 """
