@@ -337,7 +337,11 @@ def calcula_matriz_C_continua(D):
     # A: Matriz de adyacencia
     # Retorna la matriz C en versión continua
     D = D.copy()
-    F = ...
+    F = np.zeros(D.shape, dtype=D.dtype) # Matriz de transiciones
+    for i in range(D.shape[0]):
+        for j in range(D.shape[1]):
+            if D[i][j] != 0:
+                F[i][j] = 1 / D[i][j]
     np.fill_diagonal(F,0)
     Kinv = inversa(calcula_matrizK(D)) # Calcula inversa de la matriz K, que tiene en su diagonal la suma por filas de F 
     C = Kinv @ F # Calcula C multiplicando Kinv y F
