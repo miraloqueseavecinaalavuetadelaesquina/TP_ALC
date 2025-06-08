@@ -18,7 +18,7 @@ Comentarios
 - Punto 6: Falta
 
 ## FALTA CORREGIR
-- EJERCICIO 2: Falta.
+- EJERCICIO 2: Puse el punto 2 de Migue.
 - EJERCICIO 3: Falta.
 - EJERCICIO 5: Falta.
 - EJERCICIO 6: Falta.
