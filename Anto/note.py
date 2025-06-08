@@ -17,9 +17,9 @@ import scipy
 
 import os
 import sys
-#path_t40= '/home/antonyus/Documents/GitHub/TP_ALC/Anto'
-path_X270 = '/home/kanxo/git/tp_ALC/Anto/'
-sys.path.append(path_X270)
+path_t40= '/home/an2/git/tp_alc/TP_ALC/Anto/'
+#path_X270 = '/home/kanxo/git/tp_ALC/Anto/'
+sys.path.append(path_t40)
 
 import funciones as f
 #import func as ff
@@ -94,9 +94,10 @@ p = m_inv @ np.ones(N)
 p.sum() # Verifico que efectivamente sea un versor
 
 fig, ax = plt.subplots(figsize=(10, 10))
-barrios.boundary.plot(color='gray',ax=p)
-museos.plot(ax=p)
+barrios.boundary.plot(color='gray',ax=ax)
+museos.plot(ax=ax)
 
+print("Leega hast aca ?")
 
 node_sizes =  400 * p  # se puede ajustar tamaños
 fig, ax = plt.subplots(figsize=(20, 20))
@@ -147,7 +148,7 @@ def visualizar_p(A,size,alfa=1/5):
     plt.tight_layout()
     plt.show()
 
-def visualizar_pR(D,G,size,m=3, alfa=1/5):
+def visualizar_pR(D,size,m=3, alfa=1/5):
     A = construye_adyacencia(D,m)
 
     # Construcción de la red en NetworkX (sólo para las visualizaciones)
@@ -156,9 +157,9 @@ def visualizar_pR(D,G,size,m=3, alfa=1/5):
     G_layout = {i:v for i,v in enumerate(zip(museos.to_crs("EPSG:22184").get_coordinates()['x'],museos.to_crs("EPSG:22184").get_coordinates()['y']))}
 
     # Visualizacion
-    fig, ax = plt.subplots(figsize=(15, 15)) # Visualización de la red en el mapa
-    barrios.to_crs("EPSG:22184").boundary.plot(color='gray',ax=ax) # Graficamos Los barrios
-    nx.draw_networkx(G,G_layout,ax=ax) # Graficamos los museos
+    #fig, ax = plt.subplots(figsize=(15, 15)) # Visualización de la red en el mapa
+    #barrios.to_crs("EPSG:22184").boundary.plot(color='gray',ax=ax) # Graficamos Los barrios
+    #nx.draw_networkx(G,G_layout,ax=ax) # Graficamos los museos
 
     C = f.calcula_matriz_C(A)
     N=A.shape[0]
@@ -186,17 +187,27 @@ def visualizar_pR(D,G,size,m=3, alfa=1/5):
     plt.tight_layout()
     plt.show()
     
+    return p
+    
+
 # 3.a
-size ={'node size':6000, 'plot size':10}
+size ={'node size':1000, 'plot size':15}
 visualizar_p(A,size)
 
 # 3.b
 for m in (1, 3, 5, 10):
-    visualizar_pR(D, G, m=m,size=20)
-
+    visualizar_pR(D,size, m=m)
+    
+n = 3
+museos_centrales = {'puntajes': [] , 'posiciones': []}
 # 3.c
 for alpha in [6/7, 4/5, 2/3, 1/2, 1/3, 1/5, 1/7]:
-    visualizar_pR(D, G,size, m=5, alfa=alpha)
+    p = visualizar_pR(D,size, m=5, alfa=alpha)
+    p = pd.Series(p).sort_values(ascending=False)
+    museos_centrales['puntajes'].append(p.head(n).values)
+    museos_centrales['posiciones'].append(p.head(n).index)
+    
+    
 
 
 """

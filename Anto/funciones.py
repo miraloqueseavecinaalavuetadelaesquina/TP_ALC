@@ -11,6 +11,7 @@ from scipy.linalg import solve_triangular
 import matplotlib.pyplot as plt
 from numpy.linalg import LinAlgError
 import scipy
+import pandas as pd
 #from progress.bar import Bar    
 
 # =============================================================================
@@ -239,9 +240,9 @@ def calcula_matrizK (A):
 def calcula_matriz_C(A): 
     # Función para calcular la matriz de trancisiones C
     # A: Matriz de adyacencia
-    # Retorna la matriz C
+    # Retorna la matriz C    
     Kinv = inversa(calcula_matrizK(A))
-    C = Kinv @ A
+    C = np.transpose(A) @ Kinv
     return C
 
 # -----------------------------------------------------------------------------
@@ -252,10 +253,7 @@ def calcular_matriz_M(C,N,alpha):
     M = N/alpha * (ide - (1-alpha)*C)
     return M
 
-
-
-def calcular_vector_p(M):    
-    return 
+ 
 
 c = np.array([[0,0,2,4],[0,2,4,3],[5,2,1,1],[2,3,1,1]])
 calcular_matriz_M(c, 4, 0.25)
@@ -280,7 +278,23 @@ def calcula_pagerank(A,alfa):
     return p
 
 #------------------------------------------------------------------------------
-# La diafgonal son ceros
+
+# f :: [a] -> [i,a]  
+# g :: [i,a] -> [i,a]
+
+def sort_array(v):
+    # [a] -> [i,a]
+    v_serie = pd.Series(v)
+    # ordenamos
+    return  v_serie.sort_values()
+
+v = np.array([1,-3,-4,0,0.2,-0.4,3])
+v = pd.Series(v).sort_values(ascending=False)
+v.iat[0]
+v.head(3).index
+v.head(3).values
+#------------------------------------------------------------------------------
+# La diagonal son ceros
 def calcula_matriz_C_continua_(D):
     N = D.shape[0]
     C = np.eye(N) # acá C es la matriz identidad
