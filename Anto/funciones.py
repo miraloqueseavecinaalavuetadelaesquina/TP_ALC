@@ -291,7 +291,8 @@ def sort_array(v):
 v = np.array([1,-3,-4,0,0.2,-0.4,3])
 v = pd.Series(v).sort_values(ascending=False)
 v.iat[0]
-v.head(3).index
+w = v.head(3).index
+type(v.head(3).index.to_numpy())
 v.head(3).values
 #------------------------------------------------------------------------------
 # La diagonal son ceros

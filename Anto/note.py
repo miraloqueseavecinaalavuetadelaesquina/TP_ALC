@@ -199,7 +199,7 @@ for m in (1, 3, 5, 10):
     visualizar_pR(D,size, m=m)
     
 n = 3
-museos_centrales = {'puntajes': [] , 'posiciones': []}
+museos_centrales = {'puntajes': np.array([]) , 'posiciones': np.array()}
 # 3.c
 for alpha in [6/7, 4/5, 2/3, 1/2, 1/3, 1/5, 1/7]:
     p = visualizar_pR(D,size, m=5, alfa=alpha)
