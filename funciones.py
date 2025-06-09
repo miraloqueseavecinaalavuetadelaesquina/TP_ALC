@@ -296,24 +296,28 @@ type(v.head(3).index.to_numpy())
 v.head(3).values
 #------------------------------------------------------------------------------
 # La diagonal son ceros
-def calcula_matriz_C_continua_(D):
-    N = D.shape[0]
-    C = np.eye(N) # acá C es la matriz identidad
-    M =D + C
-    M = 1/M
-    M -= C
-    # De paso sumemos las columnas
-    suma_columnas = np.transpose(np.add.reduce(M,axis=0))
-    #y de paso multipliquuemos 
-    for i in range(N):
+def calcula_F(D):
+    n = D.shape[0]
+    M = np.eye(n) # matriz identidad
+    C =D + M
+    C = 1/C
+    C -= M
+    # sumamos las columnas
+    suma_columnas = np.transpose(np.add.reduce(C,axis=0)) 
+    M = D.copy()
+    for i in range(n):
         M[i] = M[i] * suma_columnas
-    return np.transpose(M)
+    M += np.eye(n, dtype=float)
+    M = 1/M
+    M -= np.eye(n, dtype=float)
+    return M
 
-A = np.array([[0,1,2,3],[4,0,3,4],[2,2,0,12],[4,1,8,0]])
+
+A = np.array([[0,1,2,3],[4,0,3,4],[2,2,0,12],[4,1,8,0]], dtype=float)
 vector_a = np.array([1, 2])
 vector_b = np.array([0.5, 0.25])
 vector_a * vector_b
-m = calcula_matriz_C_continua_(A)
+m = calcula_F(A)
 
 def norma2(v, l, r):
     if l+1 < r:

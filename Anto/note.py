@@ -194,39 +194,6 @@ def visualizar_pR(D,size,m=3, alfa=1/5):
 size ={'node size':1000, 'plot size':15}
 visualizar_p(A,size)
 
-# 1. Obtener los top 3 museos
-top_museos = museos.iloc[p.sort_values(ascending=False).head(3).index].copy()
-
-# 2. Crear el gráfico solo con los museos top
-fig, ax = plt.subplots(figsize=(12, 12))
-
-# Graficar barrios (contorno)
-barrios.to_crs("EPSG:22184").boundary.plot(color='gray', ax=ax, linewidth=0.8)
-
-# Graficar museos top (en rojo, tamaño proporcional al PageRank)
-top_museos.to_crs("EPSG:22184").plot(
-    ax=ax,
-    color='red',
-    markersize=top_museos.index.map(p) * 1000,  # Ajusta el escalado (*1000 para visibilidad)
-    alpha=0.8,
-    edgecolor='black'
-)
-
-# Añadir etiquetas con el valor de PageRank
-for idx, row in top_museos.iterrows():
-    ax.annotate(
-        text=f"{p[idx]:.2f}",
-        xy=(row.geometry.x, row.geometry.y),
-        xytext=(10, 10),
-        textcoords='offset points',
-        fontsize=10,
-        bbox=dict(boxstyle='round', fc='white', alpha=0.8)
-    )
-
-# Configuración adicional
-ax.set_title('Top 3 Museos por PageRank', fontsize=14)
-ax.set_axis_off()  # Ocultar ejes
-plt.show()
 
 # Recopilamos info 
 museos_centrales = {'puntajes': [] , 'posiciones': [], 'vectores': []}
