@@ -312,6 +312,17 @@ def calcula_F(D):
     M -= np.eye(n, dtype=float)
     return M
 
+def calcula_matriz_C_continua_(D): 
+    # Función para calcular la matriz de trancisiones C
+    # A: Matriz de adyacencia
+    # Retorna la matriz C en versión continua
+    D = D.copy()
+    F = calcula_F(D)
+    #np.fill_diagonal(F,0)
+    Kinv = inversa(calcula_matrizK(D)) # Calcula inversa de la matriz K, que tiene en su diagonal la suma por filas de F 
+    C = Kinv @ F # Calcula C multiplicando Kinv y F
+    return C
+
 
 A = np.array([[0,1,2,3],[4,0,3,4],[2,2,0,12],[4,1,8,0]], dtype=float)
 vector_a = np.array([1, 2])
