@@ -181,7 +181,7 @@ def visualizar_pR(D,size,m=3, alfa=1/5):
         with_labels=False     
     )
     
-    ax.set_title("Red de Museos en CABA - Tamaño según PageRank (α={})".format(alfa), fontsize=16, pad=20)
+    ax.set_title("Red de Museos en CABA - Tamaño según PageRank (α={})".format(np.round(alfa,2)), fontsize=16, pad=20)
     ax.grid(False)  # Ocultar cuadrícula
     
     plt.tight_layout()
@@ -210,6 +210,7 @@ museos_centrales['puntajes'] = np.array(museos_centrales['puntajes']).transpose(
 museos_centrales['posiciones'] = np.array(museos_centrales['posiciones']).transpose()
 museos_centrales['titulos'] = ['m=1', 'm=3', 'm=5', 'm=10']
 
+np.round(2.343020320493, 3)
 
 # 3.a'
 
@@ -218,14 +219,12 @@ ax.plot([1,3,5,10], museos_centrales['puntajes'][0] , label='Primer museo' ,colo
 ax.plot([1,3,5,10], museos_centrales['puntajes'][1] , label='Segundo museo' ,color='purple', marker='o', linewidth=2.2, linestyle='--')
 ax.plot([1,3,5,10], museos_centrales['puntajes'][2] , label='Tercer museo' ,color='violet', marker='o', linewidth=2.2, linestyle='--')
 
-# mostrar titulo
-ax.set_title('Puntajes')
 
+ax.set_title('Puntajes')
 # Labels 
 ax.set_ylabel('Puntaje PageRank')
 ax.set_xlabel('Cantidad de vecinos más cercanos (m)')
 
-# Default grid
 ax.grid()
 plt.show()
 plt.close()

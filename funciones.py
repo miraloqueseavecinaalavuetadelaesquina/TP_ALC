@@ -298,37 +298,43 @@ v.head(3).values
 # La diagonal son ceros
 def calcula_F(D):
     n = D.shape[0]
-    M = np.eye(n) # matriz identidad
-    C =D + M
+    C =D + np.eye(n)
     C = 1/C
-    C -= M
+    np.fill_diagonal(C, 0)
     # sumamos las columnas
     suma_columnas = np.transpose(np.add.reduce(C,axis=0)) 
+    K = calcula_matrizK(D)
     M = D.copy()
+    
     for i in range(n):
         M[i] = M[i] * suma_columnas
     M += np.eye(n, dtype=float)
     M = 1/M
     M -= np.eye(n, dtype=float)
-    return M
+    return M, K @ C
 
 def calcula_matriz_C_continua_(D): 
     # Función para calcular la matriz de trancisiones C
     # A: Matriz de adyacencia
     # Retorna la matriz C en versión continua
-    D = D.copy()
-    F = calcula_F(D)
-    #np.fill_diagonal(F,0)
-    Kinv = inversa(calcula_matrizK(D)) # Calcula inversa de la matriz K, que tiene en su diagonal la suma por filas de F 
-    C = Kinv @ F # Calcula C multiplicando Kinv y F
+    F = D.copy()
+    np.fill_diagonal(F, 1)
+    F = 1/F
+    np.fill_diagonal(F,0)
+    Kinv = inversa(calcula_matrizK(F)) # Calcula inversa de la matriz K, que tiene en su diagonal la suma por filas de F 
+    C = Kinv @ F.transpose() # Calcula C multiplicando Kinv y F
     return C
 
 
 A = np.array([[0,1,2,3],[4,0,3,4],[2,2,0,12],[4,1,8,0]], dtype=float)
+A.transpose()
+
+
 vector_a = np.array([1, 2])
 vector_b = np.array([0.5, 0.25])
 vector_a * vector_b
-m = calcula_F(A)
+m, mm = calcula_F(A)
+mm = calcula_matriz_C_continua_(A)
 
 def norma2(v, l, r):
     if l+1 < r:
