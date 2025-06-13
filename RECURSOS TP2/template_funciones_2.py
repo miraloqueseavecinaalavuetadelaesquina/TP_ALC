@@ -10,15 +10,50 @@
 #    [0, 0, 0, 0, 1, 1, 1, 0]
 #])
 
+# =============================================================================
+# LIBRERÍAS
+# =============================================================================
 
+import numpy as np
+import pandas as pd
+
+# =============================================================================
+# FUNCIONES PRELIMINARES
+# =============================================================================
+
+def calcula_K (A):
+    n = A.shape[0]
+    k = np.zeros((n,n),dtype=A.dtype)
+    for i in range(n):
+        k[i][i] = A[i].sum()
+    
+    return k
+
+def norma2(v):
+    n = 0
+    for k in v:
+        n+=k*k
+    return np.sqrt(n)
+
+
+# =============================================================================
+# FUNCIONES TP
+# =============================================================================
+
+
+# L = K -A
 def calcula_L(A):
     # La función recibe la matriz de adyacencia A y calcula la matriz laplaciana
-    # Have fun!!
+    L = calcula_K(A) - A
     return L
 
+# P_ij número esperado de conexiones entre i y j
+# P_ij = kikj/2E  => P = k . k^t/2E
+# R = A - P
 def calcula_R(A):
     # La funcion recibe la matriz de adyacencia A y calcula la matriz de modularidad
-    # Have fun!!
+    k = np.eye(A.shape[0]) @ calcula_K(A)
+    R = A-  1/np.sum(A) * k @ np.transpose(A)
     return R
 
 def calcula_lambda(L,v):
@@ -32,29 +67,30 @@ def calcula_Q(R,v):
 
 def metpot1(A,tol=1e-8,maxrep=np.Inf):
    # Recibe una matriz A y calcula su autovalor de mayor módulo, con un error relativo menor a tol y-o haciendo como mucho maxrep repeticiones
-   v = ... # Generamos un vector de partida aleatorio, entre -1 y 1
-   v = ... # Lo normalizamos
-   v1 = ... # Aplicamos la matriz una vez
-   v1 = ... # normalizamos
-   l = ... # Calculamos el autovector estimado
-   l1 = ... # Y el estimado en el siguiente paso
+   v = 2 * np.random.rand(A.shape[0],1) - 1 # Generamos un vector de partida aleatorio, entre -1 y 1
+   v /= np.linalg.norm(v,2) # Lo normalizamos
+   v1 = A @ v # Aplicamos la matriz una vez
+   v1 /= np.linalg.norm(v1,2) # normalizamos
+   l = v.T @ A @ v / (v.T @ v) # autovector estimado A@v = l v1 <=> v*A@v = l v*v <=> l = v*A@v / v*v
+   l1 = v1.T @ A @ v1 / (v1.T @ v1) # Y el estimado en el siguiente paso
    nrep = 0 # Contador
    while np.abs(l1-l)/np.abs(l) > tol and nrep < maxrep: # Si estamos por debajo de la tolerancia buscada 
       v = v1 # actualizamos v y repetimos
       l = l1
-      v1 = ... # Calculo nuevo v1
-      v1 = ... # Normalizo
-      l1 = ... # Calculo autovector
+      v1 = A @ v # Calculo nuevo v1
+      v1 /= np.linalg.norm(v1,2) # Normalizo
+      l1 = v1.T @ A @ v1 / (v1.T @ v1) # Calculo autovector
       nrep += 1 # Un pasito mas
    if not nrep < maxrep:
       print('MaxRep alcanzado')
-   l = ... # Calculamos el autovalor
+   l =  l1[0][0] # Calculamos el autovalor
    return v1,l,nrep<maxrep
 
+# deflA = A - l v*v^t/(v^tv)
 def deflaciona(A,tol=1e-8,maxrep=np.Inf):
     # Recibe la matriz A, una tolerancia para el método de la potencia, y un número máximo de repeticiones
     v1,l1,_ = metpot1(A,tol,maxrep) # Buscamos primer autovector con método de la potencia
-    deflA = ... # Sugerencia, usar la funcion outer de numpy
+    deflA = A - l1/(v1.T @ v1) * np.outer(v1,v1) # Sugerencia, usar la funcion outer de numpy
     return deflA
 
 def metpot2(A,v1,l1,tol=1e-8,maxrep=np.Inf):
