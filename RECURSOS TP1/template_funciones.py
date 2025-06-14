@@ -43,7 +43,7 @@ def calcula_matriz_C_continua(D):
     # A: Matriz de adyacencia
     # Retorna la matriz C en versión continua
     D = D.copy()
-    F = 1/D
+    F = ... 
     np.fill_diagonal(F,0)
     Kinv = ... # Calcula inversa de la matriz K, que tiene en su diagonal la suma por filas de F 
     C = ... # Calcula C multiplicando Kinv y F
