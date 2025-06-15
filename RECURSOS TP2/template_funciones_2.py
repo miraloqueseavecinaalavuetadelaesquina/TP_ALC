@@ -16,10 +16,83 @@
 
 import numpy as np
 import pandas as pd
+from numpy.linalg import LinAlgError
+from scipy.linalg import solve_triangular
 
 # =============================================================================
 # FUNCIONES PRELIMINARES
 # =============================================================================
+
+# Función para permutar filas (para descompPLU)
+def permutacion(A, vector_P, index):
+    n = A.shape[0]
+    max_index = index + np.argmax(np.abs(A[index:, index]))
+    #swap
+    if max_index != index:
+        A[[index, max_index]] = A[[max_index, index]]
+        vector_P[[index, max_index]] = vector_P[[max_index, index]]
+
+
+# Descomposición PLU con pivoteo
+def calculaPLU(m, verbose=False):
+    mc = m.copy().astype(np.float64)
+    n = m.shape[0]
+    P = np.eye(n)
+    for i in range(n - 1):
+        max_row = i + np.argmax(np.abs(mc[i:, i]))
+        if max_row != i:
+            mc[[i, max_row]] = mc[[max_row, i]]
+            P[[i, max_row]] = P[[max_row, i]]
+        a_ii = mc[i, i]
+        if a_ii == 0:
+            raise ValueError("Matriz singular (no invertible)")
+        L_i = mc[i+1:, i] / a_ii
+        mc[i+1:, i] = L_i
+        mc[i+1:, i+1:] -= np.outer(L_i, mc[i, i+1:])
+    
+    L = np.tril(mc, -1) + np.eye(n)
+    U = np.triu(mc)
+    if verbose:
+        print("P:\n", P)
+        print("L:\n", L)
+        print("U:\n", U)
+    return P, L, U
+
+
+def calculaLU(matriz, verbose=False):
+    mc = matriz.copy().astype(np.float64)
+    n = matriz.shape[0]
+    for i in range(n - 1):
+        a_ii = mc[i, i]
+        if a_ii == 0:
+            raise ValueError("Cero en la diagonal durante LU (se requiere pivoteo)")
+        L_i = mc[i+1:, i] / a_ii
+        mc[i+1:, i] = L_i
+        mc[i+1:, i+1:] -= np.outer(L_i, mc[i, i+1:])
+    
+    L = np.tril(mc, -1) + np.eye(n)
+    U = np.triu(mc)
+    if verbose:
+        print("L:\n", L)
+        print("U:\n", U)
+    return L, U
+
+# Función para calcular la inversa corregida
+def inversa(m):
+    n = m.shape[0]
+    try:
+        L, U = calculaLU(m)
+        P = np.eye(n)  # Matriz de permutación identidad si no hay pivoteo
+    except (ValueError, LinAlgError):
+        P, L, U = calculaPLU(m)
+    
+    m_inv = np.zeros((n, n))
+    for i in range(n):
+        e_i = P.T @ np.eye(n)[:, i]  # Aplica la permutación P al vector canónico
+        y = solve_triangular(L, e_i, lower=True)
+        x = solve_triangular(U, y, lower=False)
+        m_inv[:, i] = x
+    return m_inv
 
 def calcula_K (A):
     n = A.shape[0]
@@ -53,16 +126,24 @@ def calcula_L(A):
 def calcula_R(A):
     # La funcion recibe la matriz de adyacencia A y calcula la matriz de modularidad
     k = np.eye(A.shape[0]) @ calcula_K(A)
-    R = A-  1/np.sum(A) * k @ np.transpose(A)
+    R = A-  1/np.sum(A) * k @ k.T
     return R
 
 def calcula_lambda(L,v):
     # Recibe L y v y retorna el corte asociado
-    # Have fun!
+    # definimos el vector s de signos asociado a v
+    s = np.array([-1 if x < 0 else (1 if x > 0 else 0) for x in v])
+    lambdon = s.T @ L @ s
     return lambdon
 
 def calcula_Q(R,v):
     # La funcion recibe R y s y retorna la modularidad (a menos de un factor 2E)
+    return Q
+
+def calcula_Q_(A,R,v):
+    # La funcion recibe R y s y retorna la modularidad (a menos de un factor 2E)
+    s = np.array([-1 if x < 0 else (1 if x > 0 else 0) for x in v])
+    Q = 1/(2*np.sum(A)) * s.T @ R @ s
     return Q
 
 def metpot1(A,tol=1e-8,maxrep=np.Inf):
@@ -96,22 +177,25 @@ def deflaciona(A,tol=1e-8,maxrep=np.Inf):
 def metpot2(A,v1,l1,tol=1e-8,maxrep=np.Inf):
    # La funcion aplica el metodo de la potencia para buscar el segundo autovalor de A, suponiendo que sus autovectores son ortogonales
    # v1 y l1 son los primeors autovectores y autovalores de A}
-   # Have fun!
+   deflA = deflaciona(A)
    return metpot1(deflA,tol,maxrep)
 
 
+# mu>0, (L+mu*I)^{-1} 
 def metpotI(A,mu,tol=1e-8,maxrep=np.Inf):
     # Retorna el primer autovalor de la inversa de A + mu * I, junto a su autovector y si el método convergió.
-    return metpot1(...,tol=tol,maxrep=maxrep)
+    M = inversa(A + mu * np.identity(A.shape[0]))
+    return metpot1(M,tol=tol,maxrep=maxrep)
 
 def metpotI2(A,mu,tol=1e-8,maxrep=np.Inf):
    # Recibe la matriz A, y un valor mu y retorna el segundo autovalor y autovector de la matriz A, 
    # suponiendo que sus autovalores son positivos excepto por el menor que es igual a 0
    # Retorna el segundo autovector, su autovalor, y si el metodo llegó a converger.
-   X = ... # Calculamos la matriz A shifteada en mu
-   iX = ... # La invertimos
-   defliX = ... # La deflacionamos
-   v,l,_ =  ... # Buscamos su segundo autovector
+   X = A + mu * np.identity(A.shape[0]) # Calculamos la matriz A shifteada en mu
+   iX = inversa(X) # La invertimos
+   v1,l1,es_conv = metpot1(iX)
+   defliX = deflaciona(iX) # La deflacionamos
+   v,l,_ = metpot1(defliX)  # Buscamos su segundo autovector
    l = 1/l # Reobtenemos el autovalor correcto
    l -= mu
    return v,l,_
