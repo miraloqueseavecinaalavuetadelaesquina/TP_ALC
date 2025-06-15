@@ -16,7 +16,6 @@
 
 import numpy as np
 import pandas as pd
-from numpy.linalg import LinAlgError
 from scipy.linalg import solve_triangular
 
 # =============================================================================
@@ -83,7 +82,7 @@ def inversa(m):
     try:
         L, U = calculaLU(m)
         P = np.eye(n)  # Matriz de permutación identidad si no hay pivoteo
-    except (ValueError, LinAlgError):
+    except (ValueError, np.LinAlgError):
         P, L, U = calculaPLU(m)
     
     m_inv = np.zeros((n, n))
