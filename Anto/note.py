@@ -30,7 +30,7 @@ import funciones as f
 museos = gpd.read_file('https://raw.githubusercontent.com/MuseosAbiertos/Leaflet-museums-OpenStreetMap/refs/heads/principal/data/export.geojson')
 barrios = gpd.read_file('https://cdn.buenosaires.gob.ar/datosabiertos/datasets/ministerio-de-educacion/barrios/barrios.geojson')
 
-# visualizacion
+ # visualizacion
 # Armamos el gráfico para visualizar los museos
 fig, ax = plt.subplots(figsize=(10, 10))
 barrios.boundary.plot(color='gray',ax=ax)
