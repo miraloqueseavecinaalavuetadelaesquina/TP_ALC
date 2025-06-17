@@ -135,9 +135,9 @@ def calcula_lambda(L,v):
     lambdon = s.T @ L @ s
     return lambdon
 
-def calcula_Q(R,v):
+#def calcula_Q(R,v):
     # La funcion recibe R y s y retorna la modularidad (a menos de un factor 2E)
-    return Q
+#    return Q
 
 def calcula_Q_(A,R,v):
     # La funcion recibe R y s y retorna la modularidad (a menos de un factor 2E)
@@ -210,10 +210,13 @@ def laplaciano_iterativo(A,niveles,nombres_s=None):
         return([nombres_s])
     else: # Sino:
         L = calcula_L(A) # Recalculamos el L
-        v,l,_ = ... # Encontramos el segundo autovector de L
+        mu = 1 # aca deberia ir una funcion para calclar un mu optimo?
+        # buscamos el segundo autovecto y autovalor más chico, por lo que usaremos la potencia inversa, tengamos en cuenta
+        v,l,_ = metpotI2(L, mu) # Encontramos el segundo autovector de L
         # Recortamos A en dos partes, la que está asociada a el signo positivo de v y la que está asociada al negativo
-        Ap = ... # Asociado al signo positivo
-        Am = ... # Asociado al signo negativo
+        v = v.flatten()
+        Ap = A[v>0,:][:,v>0] # Asociado al signo positivo 
+        Am = A[v<0,:][:,v<0] # Asociado al signo negativo
         
         return(
                 laplaciano_iterativo(Ap,niveles-1,
@@ -235,20 +238,23 @@ def modularidad_iterativo(A=None,R=None,nombres_s=None):
     if nombres_s is None:
         nombres_s = range(R.shape[0])
     # Acá empieza lo bueno
-    if R.shape[0] == 1: # Si llegamos al último nivel
-        return(...)
+    if R.shape[0] == 1: # Si llegamos al último nivel, caso base
+        return([nombres_s])
     else:
-        v,l,_ = ... # Primer autovector y autovalor de R
+        v,l,_ = metpot1(R) # Primer autovector y autovalor de R
+        v = v.flatten()
         # Modularidad Actual:
         Q0 = np.sum(R[v>0,:][:,v>0]) + np.sum(R[v<0,:][:,v<0])
         if Q0<=0 or all(v>0) or all(v<0): # Si la modularidad actual es menor a cero, o no se propone una partición, terminamos
-            return(...)
+            return([nombres_s])
         else:
             ## Hacemos como con L, pero usando directamente R para poder mantener siempre la misma matriz de modularidad
-            Rp = ... # Parte de R asociada a los valores positivos de v
-            Rm = ... # Parte asociada a los valores negativos de v
-            vp,lp,_ = ...  # autovector principal de Rp
-            vm,lm,_ = ... # autovector principal de Rm
+            Rp  = R[v>0,:][:,v>0] # Rp Parte de R asociada a los valores positivos de v
+            Rm =  R[v<0,:][:,v<0] # Rm Parte asociada a los valores negativos de v
+            vp,lp,_ = metpot1(Rp)  # autovector principal de Rp
+            vm,lm,_ = metpot1(Rm) # autovector principal de Rm   
+            vp = vp.flatten()
+            vm = vm.flatten()
         
             # Calculamos el cambio en Q que se produciría al hacer esta partición
             Q1 = 0
@@ -260,5 +266,10 @@ def modularidad_iterativo(A=None,R=None,nombres_s=None):
                 return([[ni for ni,vi in zip(nombres_s,v) if vi>0],[ni for ni,vi in zip(nombres_s,v) if vi<0]])
             else:
                 # Sino, repetimos para los subniveles
-                return(...)
+                return(
+                    modularidad_iterativo(R=Rp,
+                                          nombres_s=[ni for ni,vi in zip(nombres_s,v) if vi>0]) +
+                    modularidad_iterativo(R=Rm,
+                                          nombres_s=[ni for ni,vi in zip(nombres_s,v) if vi<0])
+                    )
 
