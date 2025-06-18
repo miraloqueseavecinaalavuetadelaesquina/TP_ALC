@@ -12,8 +12,21 @@ Created on Tue Jun 10 22:15:02 2025
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from numpy.linalg import LinAlgError
 from scipy.linalg import solve_triangular
+import geopandas as gpd # Para hacer cosas geográficas
+import seaborn as sns # Para hacer plots lindos
+import networkx as nx
+
+import os
+import sys
+path_t40= '/home/an2/git/tp_alc/TP_ALC'
+#path_X270 = '/home/kanxo/git/tp_ALC/Anto/'
+sys.path.append(path_t40)
+
+
+
 
 # =============================================================================
 # FUNCIONES PRELIMINARES
@@ -106,6 +119,18 @@ def norma2(v):
         n+=k*k
     return np.sqrt(n)
 
+def construye_adyacencia(D,m): 
+    # Función que construye la matriz de adyacencia del grafo de museos
+    # D matriz de distancias, m cantidad de links por nodo
+    # Retorna la matriz de adyacencia como un numpy.
+    D = D.copy()
+    l = [] # Lista para guardar las filas
+    for fila in D: # recorriendo las filas, anexamos vectores lógicos
+        l.append(fila<=fila[np.argsort(fila)[m]] ) # En realidad, elegimos todos los nodos que estén a una distancia menor o igual a la del m-esimo más cercano
+    A = np.asarray(l).astype(int) # Convertimos a entero
+    np.fill_diagonal(A,0) # Borramos diagonal para eliminar autolinks
+    return(A)
+
 
 # =============================================================================
 # FUNCIONES TP
@@ -123,7 +148,7 @@ def calcula_L(A):
 # R = A - P
 def calcula_R(A):
     # La funcion recibe la matriz de adyacencia A y calcula la matriz de modularidad
-    k = np.eye(A.shape[0]) @ calcula_K(A)
+    k =  np.diag(calcula_K(A)).reshape(-1, 1)
     R = A-  1/np.sum(A) * k @ k.T
     return R
 
@@ -300,6 +325,7 @@ def modularidad_iterativo(A=None,R=None,nombres_s=None):
         v,l,_ = metpot1(R) # Primer autovector y autovalor de R
         v = v.flatten()
         # Modularidad Actual:
+        #Q = calcula_Q_(A, R, v)
         Q0 = np.sum(R[v>0,:][:,v>0]) + np.sum(R[v<0,:][:,v<0])
         if Q0<=0 or all(v>0) or all(v<0): # Si la modularidad actual es menor a cero, o no se propone una partición, terminamos
             return([nombres_s])
@@ -331,12 +357,59 @@ def modularidad_iterativo(A=None,R=None,nombres_s=None):
 
 
 
+# =============================================================================
+# VISUALIZACIÓN
+# =============================================================================
+
+
+def calcular_A_simetrica(D= None,m=3):
+    if D is None: print('Dame una matriz valida')
+    A = construye_adyacencia(D, m)
+    # Simetrizamos
+    A = 1/2 * (A + A.transpose())
+    return A
+
+
+
+# Carga de datos
+# Leemos el archivo, retenemos aquellos museos que están en CABA, y descartamos aquellos que no tienen latitud y longitud
+museos = gpd.read_file('https://raw.githubusercontent.com/MuseosAbiertos/Leaflet-museums-OpenStreetMap/refs/heads/principal/data/export.geojson')
+barrios = gpd.read_file('https://cdn.buenosaires.gob.ar/datosabiertos/datasets/ministerio-de-educacion/barrios/barrios.geojson')
+
+ # visualizacion
+# Armamos el gráfico para visualizar los museos
+fig, ax = plt.subplots(figsize=(10, 10))
+barrios.boundary.plot(color='gray',ax=ax)
+museos.plot(ax=ax)
+
+# Matriz de distancias
+# Tomamos museos, lo convertimos al sistema de coordenadas de interés, extraemos su geometría (los puntos del mapa), 
+# calculamos sus distancias a los otros puntos de df, redondeamos (obteniendo distancia en metros), y lo convertimos a un array 2D de numpy
+D = museos.to_crs("EPSG:22184").geometry.apply(lambda g: museos.to_crs("EPSG:22184").distance(g)).round().to_numpy()
+
+
+m = 3 # Cantidad de links por nodo
+A = construye_adyacencia(D,m)
+
+# Construcción de la red en NetworkX (sólo para las visualizaciones)
+G = nx.from_numpy_array(A) # Construimos la red a partir de la matriz de adyacencia
+# Construimos un layout a partir de las coordenadas geográficas
+G_layout = {i:v for i,v in enumerate(zip(museos.to_crs("EPSG:22184").get_coordinates()['x'],museos.to_crs("EPSG:22184").get_coordinates()['y']))}
+
+# Visualizacion
+fig, ax = plt.subplots(figsize=(15, 15)) # Visualización de la red en el mapa
+barrios.to_crs("EPSG:22184").boundary.plot(color='gray',ax=ax) # Graficamos Los barrios
+nx.draw_networkx(G,G_layout,ax=ax) # Graficamos los museos
 
 
 
 # =============================================================================
 # TEST
 # =============================================================================
+
+A = calcular_A_simetrica(D,5)
+k = laplaciano_iterativo(A, niveles=4, nombres_s=museos['name'])
+r = modularidad_iterativo(A, nombres_s=museos['name'])
 
 
 
@@ -352,6 +425,9 @@ A_ejemplo = np.array([
     [0, 0, 0, 0, 1, 1, 0, 1],
     [0, 0, 0, 0, 1, 1, 1, 0]])
 
+A = calcula_R(A_ejemplo)
+
+k = calcularCPA(calcula_R(A_ejemplo))
 
 A = np.array([[0,1,2,3],
               [4,0,3,4],
@@ -384,8 +460,11 @@ v, l, _ = metpot1(A_ejemplo)
 v = v.flatten()
 A_ejemplo[v>0,:][:,v>0]
 
-v = np.array([1,-1,0.3,0.45,-0.4, 6, 0.1, -3])
+v = np.array([1,-1,0.3,0.45,-0.4, 6, 0.1, -3]).reshape(-1, 1) 
+
+v @ v.transpose()
 
 k = laplaciano_iterativo(A_ejemplo, 1)
 
 r = modularidad_iterativo(A_ejemplo)
+

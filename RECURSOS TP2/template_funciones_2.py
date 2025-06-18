@@ -124,7 +124,7 @@ def calcula_L(A):
 # R = A - P
 def calcula_R(A):
     # La funcion recibe la matriz de adyacencia A y calcula la matriz de modularidad
-    k = np.eye(A.shape[0]) @ calcula_K(A)
+    k =  np.diag(calcula_K(A)).reshape(-1, 1)
     R = A-  1/np.sum(A) * k @ k.T
     return R
 
@@ -175,7 +175,7 @@ def deflaciona(A,tol=1e-8,maxrep=np.Inf):
 
 def metpot2(A,v1,l1,tol=1e-8,maxrep=np.Inf):
    # La funcion aplica el metodo de la potencia para buscar el segundo autovalor de A, suponiendo que sus autovectores son ortogonales
-   # v1 y l1 son los primeors autovectores y autovalores de A}
+   # v1 y l1 son los primeros autovectores y autovalores de A}
    deflA = deflaciona(A)
    return metpot1(deflA,tol,maxrep)
 
