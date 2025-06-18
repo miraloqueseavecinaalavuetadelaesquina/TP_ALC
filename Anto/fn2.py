@@ -369,6 +369,89 @@ def calcular_A_simetrica(D= None,m=3):
     A = 1/2 * (A + A.transpose())
     return A
 
+def visualizar_comunidades_ax(museos, particiones, ax, titulo="Comunidades de Museos"):
+    """
+    Visualiza las comunidades de museos en el mapa
+    
+    Parámetros:
+    museos : GeoDataFrame con los datos de los museos
+    particiones : Lista de pd.series con índices o nombres de museos por comunidad 
+    """
+    # Creamos columna de comunidad en el GeoDataFrame copia
+    museos_plot = museos.copy()
+    museos_plot['comunidad'] = -1  # Valor por defecto
+    
+    for i, comunidad in enumerate(particiones):
+        museos_plot.loc[comunidad, 'comunidad'] = i
+    
+    # Dibujar barrios
+    barrios.boundary.plot(color='gray', ax=ax)
+    
+    # Graficar museos coloreados por comunidad
+    museos_plot.plot(column='comunidad', categorical=True, 
+                    legend=True, ax=ax, markersize=50,
+                    cmap='tab20', legend_kwds={'title': "Comunidad"})
+    
+    ax.set_title(titulo)
+
+
+def visualizar_comparacion_comunidades(museos, G, G_layout, particiones_metodo1, particiones_metodo2, 
+                                      nombre_metodo1='Método 1', nombre_metodo2='Método 2'):
+    
+    fig, axs = plt.subplots(1, 2, figsize=(20, 10))
+    
+    # para el método 1 
+    visualizar_comunidades_ax(museos, particiones_metodo1, axs[0], 
+                                titulo=f"{nombre_metodo1} - Comunidades en Mapa")
+    
+    # para el método 2
+    visualizar_comunidades_ax(museos, particiones_metodo2, axs[1], 
+                                titulo=f"{nombre_metodo2} - Comunidades en Mapa")
+    
+    plt.tight_layout()
+    plt.show()
+
+
+def visualizar_red_comunidades_ax(G, G_layout, particiones, ax, titulo=''):
+    """
+    Visualiza la red de museos coloreada por comunidades
+    
+    Parámetros:
+    G : Grafo de NetworkX
+    G_layout : Diccionario de posiciones
+    particiones : Lista de series con índices de museos por comunidad
+    """
+    # Asignamos colores a nodos por comunidad
+    node_colors = []
+    for node in G.nodes():
+        for i, comunidad in enumerate(particiones):
+            if node in comunidad:
+                node_colors.append(i)
+                break
+    
+    # Visualización
+    nx.draw_networkx_nodes(G, G_layout, node_color=node_colors, 
+                          cmap=plt.cm.tab20, node_size=100, ax=ax)
+    nx.draw_networkx_edges(G, G_layout, alpha=0.3, ax=ax)
+    nx.draw_networkx_labels(G, G_layout, font_size=8, ax=ax)
+    
+    ax.set_title(titulo)
+    
+    
+def visualizar_comparacion_redes(G, G_layout, particiones_metodo1, particiones_metodo2, 
+                                nombre_metodo1='Método 1', nombre_metodo2='Método 2'):
+    fig, axs = plt.subplots(1, 2, figsize=(20, 10))
+    
+    # para el método 1
+    visualizar_red_comunidades_ax(G, G_layout, particiones_metodo1, axs[0], 
+                                    titulo=f"{nombre_metodo1} - Red de Comunidades")
+    
+    # para el método 2
+    visualizar_red_comunidades_ax(G, G_layout, particiones_metodo2, axs[1], 
+                                    titulo=f"{nombre_metodo2} - Red de Comunidades")
+    
+    plt.tight_layout()
+    plt.show()
 
 
 # Carga de datos
@@ -408,11 +491,19 @@ nx.draw_networkx(G,G_layout,ax=ax) # Graficamos los museos
 # =============================================================================
 
 A = calcular_A_simetrica(D,5)
-k = laplaciano_iterativo(A, niveles=4, nombres_s=museos['name'])
-r = modularidad_iterativo(A, nombres_s=museos['name'])
+k = laplaciano_iterativo(A, niveles=4) #, nombres_s=museos['name']
+r = modularidad_iterativo(A) #, nombres_s=museos['name']
 
+visualizar_comparacion_comunidades(museos, G, G_layout, particiones_metodo1=k
+                                   , particiones_metodo2=r,
+                                   nombre_metodo1="Corte mínimo", 
+                                   nombre_metodo2="Modularidad")
 
-
+visualizar_comparacion_redes(G, G_layout, particiones_metodo1 = k,
+                             particiones_metodo2=r,
+                             nombre_metodo1="Corte mínimo",
+                             nombre_metodo2="Modularidad"
+                             )
 
 # Matriz A de ejemplo
 A_ejemplo = np.array([
@@ -468,3 +559,4 @@ k = laplaciano_iterativo(A_ejemplo, 1)
 
 r = modularidad_iterativo(A_ejemplo)
 
+visualizar_comunidades(museos, particiones=r)
