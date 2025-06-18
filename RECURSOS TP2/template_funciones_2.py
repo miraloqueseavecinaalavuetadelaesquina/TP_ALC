@@ -200,7 +200,7 @@ def metpotI2(A,mu,tol=1e-8,maxrep=np.Inf):
    return v,l,_
 
 
-def laplaciano_iterativo(A,niveles,nombres_s=None):
+def laplaciano_iterativo(A,niveles=2,nombres_s=None):
     # Recibe una matriz A, una cantidad de niveles sobre los que hacer cortes, y los nombres de los nodos
     # Retorna una lista con conjuntos de nodos representando las comunidades.
     # La función debe, recursivamente, ir realizando cortes y reduciendo en 1 el número de niveles hasta llegar a 0 y retornar.
