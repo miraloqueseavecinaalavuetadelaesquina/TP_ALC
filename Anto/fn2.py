@@ -494,13 +494,15 @@ A = calcular_A_simetrica(D,5)
 k = laplaciano_iterativo(A, niveles=4) #, nombres_s=museos['name']
 r = modularidad_iterativo(A) #, nombres_s=museos['name']
 
-visualizar_comparacion_comunidades(museos, G, G_layout, particiones_metodo1=k
-                                   , particiones_metodo2=r,
+visualizar_comparacion_comunidades(museos, G, G_layout, 
+                                   particiones_metodo1=k,
+                                   particiones_metodo2=r,
                                    nombre_metodo1="Corte mínimo", 
                                    nombre_metodo2="Modularidad")
 
-visualizar_comparacion_redes(G, G_layout, particiones_metodo1 = k,
-                             particiones_metodo2=r,
+visualizar_comparacion_redes(G, G_layout,
+                             particiones_metodo1 = k,
+                             particiones_metodo2 = r,
                              nombre_metodo1="Corte mínimo",
                              nombre_metodo2="Modularidad"
                              )
