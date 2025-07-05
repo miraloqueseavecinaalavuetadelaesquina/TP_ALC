@@ -1,11 +1,9 @@
- 	
-
 DEVOLUCION TPS
 
 A continuación van los comentarios sobre ambas partes de TP. 
 RECUERDEN QUE ES CONDICION NECESARIA APROBAR EL TP PARA APROBAR LA MATERIA.
 
-La fecha límite para la reentrega será publicada a fin de esta semana en el campus, pero estimen que será aproximadamente el 10 de Julio
+La fecha límite para la reentrega ES EL 11 DE JULIO
 
 Hoy voy a estar en el horario del labo para cualquier consulta que tengan al respecto de la devolución.
 
@@ -34,7 +32,7 @@ Antes
 Ahora: Atiendan porque estas correcciones son necesarias para la aprobación del TP (y por consecuente de la materia).
 
 # Punto 1:
--(FALTA HACER) Corrijan que dicen EDD con menor o igual, pero es con menor estricto
+-(LISTO, PERO ERA EL PUNTO 2) Corrijan que dicen EDD con menor o igual, pero es con menor estricto
 
 # Punto 3:
 -(FALTA HACER) Hay un chunk de código con funciones repetidas, que dice "funciones hechas por mi". Emprolijen la entrega antes de mandarla!
