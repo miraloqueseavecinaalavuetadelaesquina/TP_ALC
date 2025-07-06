@@ -35,18 +35,21 @@ Ahora: Atiendan porque estas correcciones son necesarias para la aprobación del
 -(HECHO, PERO ERA EL PUNTO 2) Corrijan que dicen EDD con menor o igual, pero es con menor estricto
 
 # Punto 3:
--(HEHCO) Hay un chunk de código con funciones repetidas, que dice "funciones hechas por mi". Emprolijen la entrega antes de mandarla!
+-(HECHO) Hay un chunk de código con funciones repetidas, que dice "funciones hechas por mi". Emprolijen la entrega antes de mandarla!
 -(HECHO) Ya se dijo varias veces que las imágenes consecutivas tienen que se combinadas con subplot en una grilla de gráficos.
 -(HECHO) Después de cada gráfico tiene que ir una descripción.
 - Lean las pautas.
 
 # Punto 5:
--(FALTA HACER) La norma 2 de v no da la cantidad de visitas. Escriban la expresión y piensen qué tienen que calcular para obtener el total de visitas.
+-(HECHO) La norma 2 de v no da la cantidad de visitas. Escriban la expresión y piensen qué tienen que calcular para obtener el total de visitas.
 -(FALTA HACER) En el cálculo de la matriz de B, está mal el orden de Kinv y F.transpose
 
 # Punto 6:
 -(FALTA HACER) Corranlo de nuevo con la B bien calculada.
 
+# Extra
+- (FALTA HACER) Agregar descripcion a las funciones
+- (FALTA HACER) Dejarlo mas lindo
 TP2:
 
 RRR RRR RRR R R
