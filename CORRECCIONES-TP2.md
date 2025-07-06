@@ -32,12 +32,12 @@ Antes
 Ahora: Atiendan porque estas correcciones son necesarias para la aprobación del TP (y por consecuente de la materia).
 
 # Punto 1:
--(LISTO, PERO ERA EL PUNTO 2) Corrijan que dicen EDD con menor o igual, pero es con menor estricto
+-(HECHO, PERO ERA EL PUNTO 2) Corrijan que dicen EDD con menor o igual, pero es con menor estricto
 
 # Punto 3:
--(LISTO) Hay un chunk de código con funciones repetidas, que dice "funciones hechas por mi". Emprolijen la entrega antes de mandarla!
--(FALTA HACER) Ya se dijo varias veces que las imágenes consecutivas tienen que se combinadas con subplot en una grilla de gráficos.
--(FALTA HACER) Después de cada gráfico tiene que ir una descripción.
+-(HEHCO) Hay un chunk de código con funciones repetidas, que dice "funciones hechas por mi". Emprolijen la entrega antes de mandarla!
+-(HECHO) Ya se dijo varias veces que las imágenes consecutivas tienen que se combinadas con subplot en una grilla de gráficos.
+-(HECHO) Después de cada gráfico tiene que ir una descripción.
 - Lean las pautas.
 
 # Punto 5:
