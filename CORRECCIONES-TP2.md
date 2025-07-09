@@ -42,14 +42,14 @@ Ahora: Atiendan porque estas correcciones son necesarias para la aprobación del
 
 # Punto 5:
 -(HECHO) La norma 2 de v no da la cantidad de visitas. Escriban la expresión y piensen qué tienen que calcular para obtener el total de visitas.
--(FALTA HACER) En el cálculo de la matriz de B, está mal el orden de Kinv y F.transpose
+-(HECHO) En el cálculo de la matriz de B, está mal el orden de Kinv y F.transpose
 
 # Punto 6:
--(FALTA HACER) Corranlo de nuevo con la B bien calculada.
+-(HEHCO) Corranlo de nuevo con la B bien calculada.
 
 # Extra
-- (FALTA HACER) Agregar descripcion a las funciones
-- (FALTA HACER) Dejarlo mas lindo
+- (HECHO) Agregar descripcion a las funciones
+- (HECHO) Dejarlo mas lindo
 TP2:
 
 RRR RRR RRR R R
