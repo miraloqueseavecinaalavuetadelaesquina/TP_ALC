@@ -18,6 +18,7 @@ from scipy.linalg import solve_triangular
 import geopandas as gpd # Para hacer cosas geográficas
 import seaborn as sns # Para hacer plots lindos
 import networkx as nx
+from sklearn.metrics import adjusted_rand_score
 
 import os
 import sys
@@ -358,7 +359,7 @@ def modularidad_iterativo(A=None,R=None,nombres_s=None):
 # Recibe La matriz A simetrizada
 def crear_datos(D,lm=[3] ,niv=2,nombres_s=None, metodo='corte minimo', visualizacion='mapa'):
     # Creamos diccionario
-    dict_datos ={'visualizacion':visualizacion,'titulo':metodo , 'numero de conexiones':lm, 'particiones':{}}
+    dict_datos ={'visualizacion':visualizacion,'titulo':metodo , 'numero de conexiones':lm, 'particiones':{}, 'metodo':metodo}
     # calculamos particiones para cada metodo
     if metodo == 'corte minimo':
         for m in lm:
@@ -408,6 +409,10 @@ def visualizar_comunidades_ax(museos, particiones, ax, titulo="Comunidades de Mu
                     cmap='tab20') # legend_kwds={'title': "Comunidad"}
     
     ax.set_title(titulo)
+    
+
+
+
 
 
 def visualizar_comparacion_comunidades(museos, G, G_layout, particiones_metodo1, particiones_metodo2, 
@@ -583,6 +588,104 @@ barrios.to_crs("EPSG:22184").boundary.plot(color='gray',ax=ax) # Graficamos Los 
 nx.draw_networkx(G,G_layout,ax=ax) # Graficamos los museos
 
 
+# Estabilidad
+# Función para verificar la estabilidad de los metodos
+
+# Función para verificar la estabilidad de los metodos
+def verificar_estabilidad(D,m,rep=20, umbral = 0.3, niveles=2,  metodo='corte minimo', verbose = True):
+    """
+    Parametros
+    ----------
+    D : matriz de distancias
+    m : número de conexiones
+    rep : cantidad de iteraciones
+        default 20.
+    niveles : niveles para el laplaciano
+        default 2.
+    metodo : 
+        default 'corte minimo'.
+    -------
+    Verifica la estabilidad de los algoritmos mediante la comparación de resultados
+    """
+    if np.allclose(D, D.T, atol=1e-8):
+        A = calcular_A_simetrica(D,m)
+    else:
+        A = D
+    cant_particiones = 0
+    set_particiones = set()
+    if metodo == 'corte minimo':
+        interseccion = laplaciano_iterativo(A,niveles=niveles)
+    else:
+        interseccion = modularidad_iterativo(A)
+    interseccion =  frozenset({frozenset(lista) for lista in interseccion})
+    
+    for i in range(1,rep):
+        if metodo == 'corte minimo':
+            particion = laplaciano_iterativo(A,niveles=niveles)
+        else:
+            particion = modularidad_iterativo(A)
+            cant_particiones += len(particion)
+        
+        particion = frozenset({frozenset(lista) for lista in particion})
+        set_particiones.add(particion)
+        interseccion = interseccion & particion
+    
+    if cant_particiones== 0:
+        cant_particiones = 2 ** niveles
+    else:
+        cant_particiones /= rep # promedio cantidad de particones
+    # Medimos la estabilidad
+    desaciertos = len(set_particiones)/rep
+    
+    
+    if verbose: 
+        print('Proporción de aciertos: {}'.format(np.round(1-desaciertos, 2)))
+        print('Proporción de comunidades estables: {} .'.format(np.round(len(interseccion)/cant_particiones, 2)))
+
+            
+    return 1-desaciertos, len(interseccion)/cant_particiones
+
+def particion_a_categorias(particion, n):
+    categorias = np.zeros(n,dtype=int)
+    for idx, grupo in enumerate(particion):
+        for elem in grupo:
+            categorias[elem]= idx
+    return categorias
+
+def verificar_estabilidad_(D,m,rep=20,  niveles=3,  metodo='corte minimo', verbose = True):
+    """
+    Parametros
+    ----------
+    D : matriz de distancias
+    m : número de conexiones
+    rep : cantidad de iteraciones
+        default 20.
+    niveles : niveles para el laplaciano
+        default 2.
+    metodo : 
+        default 'corte minimo'.
+    -------
+    Verifica la estabilidad de los algoritmos mediante la comparación de resultados
+    """
+    if np.allclose(D, D.T, atol=1e-8):
+        A = calcular_A_simetrica(D,m)
+    else:
+        A = D
+    
+    particiones = []
+    n = A.shape[0]
+    
+    for i in range(rep):
+        if metodo == 'corte minimo':
+            particion = laplaciano_iterativo(A,niveles=niveles)
+        else:
+            particion = modularidad_iterativo(A)
+        categorias = particion_a_categorias(particion, n)
+        particiones.append(categorias)
+        
+            
+    return np.array(particiones)
+
 
 # =============================================================================
 # TEST
@@ -591,6 +694,9 @@ nx.draw_networkx(G,G_layout,ax=ax) # Graficamos los museos
 A = calcular_A_simetrica(D,5)
 k = laplaciano_iterativo(A, niveles=4) #, nombres_s=museos['name']
 r = modularidad_iterativo(A) #, nombres_s=museos['name']
+
+l = verificar_estabilidad(D, m, rep=100, metodo='modularidad')
+l = verificar_estabilidad(D, m, rep=100)
 
 visualizar_comparacion_comunidades(museos, G, G_layout, 
                                    particiones_metodo1=k,
@@ -666,3 +772,12 @@ v @ v.transpose()
 k = laplaciano_iterativo(A_ejemplo, 1)
 
 r = modularidad_iterativo(A_ejemplo)
+
+{[1,2],[3,4]} == {[1,3],[2,4]}
+
+k= [[3,4],[1,2],[5,6,7]]
+cc = {frozenset(sublista) for sublista in k}
+k= [[5,2],[3,4],[1,6,7]]
+r = {frozenset(sublista) for sublista in k}
+
+cc & r
