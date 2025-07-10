@@ -707,6 +707,7 @@ def definir_numero_de_conexiones(D, rep=20):
         prom /= rep
         
         if prom <=2 :
+            conexiones_posibles.append(m)
             return conexiones_posibles
         elif cerca_de_potencias(prom,(2,6)):
             conexiones_posibles.append(m)
