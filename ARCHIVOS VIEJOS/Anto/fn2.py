@@ -687,6 +687,31 @@ def verificar_estabilidad_(D,m,rep=20,  niveles=3,  metodo='corte minimo', verbo
             
     return np.array(particiones)
 
+# Criterio de comparacion
+# buscamos la cantidad de conexiones necesaria para que la cantidad de comunidades  
+# 
+
+def cerca_de_potencias(r, rango):
+    return any(abs(r - (1 << n)) <= 1 for n in range(rango[0],rango[1]))
+
+def definir_numero_de_conexiones(D, rep=20):
+    conexiones_posibles = []
+    m_max = D.shape[0]
+    
+    for m in range(m_max,1,-1):
+        A = calcular_A_simetrica(D,m)
+        prom = 0
+        for i in range(rep):
+            particion = modularidad_iterativo(A)
+            prom += len(particion)
+        prom /= rep
+        
+        if prom <=2 :
+            return conexiones_posibles
+        elif cerca_de_potencias(prom,(2,6)):
+            conexiones_posibles.append(m)
+    
+    return conexiones_posibles.sort()
 
 # =============================================================================
 # TEST
@@ -736,7 +761,7 @@ A = calcula_R(A_ejemplo)
 k = calcularCPA(calcula_R(A_ejemplo))
 
 A = np.array([[0,1,2,3],
-              [4,0,3,4],
+              [4,0,3,4]
               [2,2,0,12],
               [4,1,8,0]],
              dtype=float)
@@ -782,3 +807,5 @@ k= [[5,2],[3,4],[1,6,7]]
 r = {frozenset(sublista) for sublista in k}
 
 cc & r
+
+
