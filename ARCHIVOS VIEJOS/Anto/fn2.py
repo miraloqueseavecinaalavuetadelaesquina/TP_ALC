@@ -694,11 +694,11 @@ def verificar_estabilidad_(D,m,rep=20,  niveles=3,  metodo='corte minimo', verbo
 def cerca_de_potencias(r, rango):
     return any(abs(r - (1 << n)) <= 1 for n in range(rango[0],rango[1]))
 
-def definir_numero_de_conexiones(D, rep=20):
+def definir_numero_de_conexiones(D, rep=20, rango = (2,6)):
     conexiones_posibles = []
     m_max = D.shape[0]
     
-    for m in range(m_max,1,-1):
+    for m in range(2,m_max):
         A = calcular_A_simetrica(D,m)
         prom = 0
         for i in range(rep):
@@ -709,7 +709,7 @@ def definir_numero_de_conexiones(D, rep=20):
         if prom <=2 :
             conexiones_posibles.append(m)
             return conexiones_posibles
-        elif cerca_de_potencias(prom,(2,6)):
+        elif cerca_de_potencias(prom,rango):
             conexiones_posibles.append(m)
     
     return conexiones_posibles.sort()
@@ -722,8 +722,12 @@ A = calcular_A_simetrica(D,5)
 k = laplaciano_iterativo(A, niveles=4) #, nombres_s=museos['name']
 r = modularidad_iterativo(A) #, nombres_s=museos['name']
 
+l = definir_numero_de_conexiones(D)
+
 l = verificar_estabilidad(D, m, rep=100, metodo='modularidad')
 l = verificar_estabilidad(D, m, rep=100)
+
+
 
 visualizar_comparacion_comunidades(museos, G, G_layout, 
                                    particiones_metodo1=k,
