@@ -639,6 +639,7 @@ def verificar_estabilidad(D,m,rep=20, umbral = 0.3, niveles=2,  metodo='corte mi
     
     
     if verbose: 
+        print(metodo)
         print('Proporción de aciertos: {}'.format(np.round(1-desaciertos, 2)))
         print('Proporción de comunidades estables: {} .'.format(np.round(len(interseccion)/cant_particiones, 2)))
 
