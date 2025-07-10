@@ -691,11 +691,31 @@ def verificar_estabilidad_(D,m,rep=20,  niveles=3,  metodo='corte minimo', verbo
 # buscamos la cantidad de conexiones necesaria para que la cantidad de comunidades  
 # 
 
-def cerca_de_potencias(r, rango):
-    return any(abs(r - (1 << n)) <= 1 for n in range(rango[0],rango[1]))
 
-def definir_numero_de_conexiones(D, rep=20, rango = (2,6)):
-    conexiones_posibles = []
+def cerca_de_potencias(r, rango, tol=0.5):
+    for n in range(rango[0],rango[1]):        
+        if abs(r - (1 << n)) <= tol:
+            
+            return abs(r - (1 << n)) <= tol, n
+    
+    return False, 0
+    # return any(abs(r - (1 << n)) <= tol for n in range(rango[0],rango[1]))
+
+
+
+def definir_numero_de_conexiones(D, rep=20, rango = (1,6), epsilon = 0.5):
+    """
+    Parametros
+    ----------
+    D : Matriz de distancias
+    rep : cantidad de repeticiones para obetenr el promedio de comunidades
+    rango : rango de potencias
+    epsilon : establece la tolerancia en la cual el promedio de cantidad de comunidades puede estar 
+    Retorna
+    -------
+    conexiones_posibles : diccionario (clave -> niveles : valor -> [m])
+    """
+    conexiones_posibles = {}
     m_max = D.shape[0]
     
     for m in range(2,m_max):
@@ -706,13 +726,17 @@ def definir_numero_de_conexiones(D, rep=20, rango = (2,6)):
             prom += len(particion)
         prom /= rep
         
-        if prom <=2 :
-            conexiones_posibles.append(m)
-            return conexiones_posibles
-        elif cerca_de_potencias(prom,rango):
-            conexiones_posibles.append(m)
-    
-    return conexiones_posibles.sort()
+        es_cercano, n = cerca_de_potencias(prom, rango, tol = epsilon)
+        
+        if es_cercano:
+            if n in conexiones_posibles:
+                conexiones_posibles[n].append(m)
+            else:
+                conexiones_posibles[n] = [m]
+            
+            # experimentalmente se observó que entre mayor sea m, menor será la cantidad de comunidades.
+            if n == 1: return conexiones_posibles 
+    return conexiones_posibles
 
 # =============================================================================
 # TEST
